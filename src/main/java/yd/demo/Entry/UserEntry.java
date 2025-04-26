@@ -17,7 +17,7 @@ import lombok.Setter;
 @Document(collection = "UserEntry")
 
 public class UserEntry {
-    @Id
+    @Id @Getter @Setter
     private ObjectId id;
     @Indexed(unique = true)
     @NonNull
@@ -25,7 +25,9 @@ public class UserEntry {
     private String username;
     @NonNull @Getter @Setter
     private String password;
-    @DBRef 
+    @DBRef @Getter @Setter
     private List<JournalEntry> JournalEntry = new ArrayList<>();
+    @Getter @Setter
+    private List<String> role; 
 
 }

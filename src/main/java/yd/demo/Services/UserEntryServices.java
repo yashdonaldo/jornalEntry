@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import yd.demo.Entry.UserEntry;
@@ -14,6 +16,9 @@ public class UserEntryServices {
     @Autowired
     private UserRepo userRepo;
 
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); 
+
+    // Create User Service
     public UserEntry createUser(UserEntry user) {
         userRepo.save(user);
         System.out.println("User created successfully.");
@@ -26,11 +31,14 @@ public class UserEntryServices {
         return user;
     }
 
+    // Get User by id Service
     public UserEntry getUserById(ObjectId id) {
         return userRepo.findById(id).orElse(null);
         // Optional: Handle the case where the user is not found.
     }
 
+
+    // Delete User Service
     public void deleteUser(ObjectId id) {
         userRepo.deleteById(id);
         System.out.println("User deleted successfully.");
@@ -60,27 +68,42 @@ public class UserEntryServices {
         System.out.println("User deletion process completed.");
     }
 
+
+    // Get All User Service
     public List<UserEntry> getAllUsers() {
         return userRepo.findAll();
         // Optional: Log the retrieval of all users for auditing purposes.
         // Optionally, handle any exceptions that may occur during retrieval.
     }
 
-    public UserEntry updateUser(ObjectId id, UserEntry updatedUser) {
-        userRepo.findById(id).ifPresent(existingUser -> {
-            existingUser.setUsername(updatedUser.getUsername());
-            existingUser.setPassword(updatedUser.getPassword());
-            userRepo.save(existingUser);
-            System.out.println("User updated successfully.");
-            System.out.println("User update event logged.");
-            // Notify other services about the user update event.
-            System.out.println("User update event notified to other services.");
-        });
-        System.out.println("User ID " + id + " not found for update.");
-        // Optionally, return a message indicating the update failure.
-        System.out.println("Update failed: User with ID " + id + " does not exist.");
-        // return "Update failed: User with ID " + id + " does not exist.";
-        return updatedUser;
-    };
 
+    // Update User Service
+    public UserEntry updateUser (String username, UserEntry updatedUser ) {
+        UserEntry user = userRepo.findByUsername(username);
+        System.out.println(username + "username");
+        System.out.println(user);
+        if(user != null){
+            user.setUsername(updatedUser.getUsername());
+            user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            userRepo.save(user);
+            System.out.println("User  updated successfully.");
+            return user;
+        }else{
+            System.out.println("User  with username " + username + " not found for update.");
+            return null;
+        }
+    }
+
+
+    // Get User by UserName Service
+    public UserEntry getUserByUsername(String user){
+        UserEntry User = userRepo.findByUsername(user);
+        return User;
+    }
+
+
+    // Save Entry Service
+    public void saveEntry(UserEntry entry) {
+        userRepo.save(entry);
+    }
 }

@@ -1,13 +1,16 @@
 package yd.demo.Services;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import yd.demo.Entry.JournalEntry;
+import yd.demo.Entry.UserEntry;
 import yd.demo.Respository.JournalRepo;
 
 @Component
@@ -16,9 +19,18 @@ public class JournalEntryServices {
     @Autowired
     private JournalRepo JournalRepo;
 
+    @Autowired
+    private UserEntryServices userServices;
+
     // Create Entry
-    public void saveJournalEntry(JournalEntry journalEntry) {
-        JournalRepo.save(journalEntry);
+    @Transactional
+    public void saveJournalEntry(JournalEntry journalEntry ) {
+        UserEntry user = userServices.getUserByUsername(journalEntry.getUserId());
+        journalEntry.setDate(LocalDateTime.now());
+        JournalEntry jEntry = JournalRepo.save(journalEntry);
+        user.getJournalEntry().add(jEntry);
+        user.setUsername(null);
+        userServices.saveEntry(user);
     }
 
     // Get All Entry

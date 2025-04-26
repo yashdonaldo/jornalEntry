@@ -1,6 +1,5 @@
 package yd.demo.Controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import yd.demo.Entry.JournalEntry;
+import yd.demo.Entry.UserEntry;
 import yd.demo.Services.JournalEntryServices;
+import yd.demo.Services.UserEntryServices;
 
 @RestController
 @RequestMapping("journal")
@@ -26,6 +27,8 @@ public class JournalEntryController {
 
     @Autowired
     private JournalEntryServices journalEntryService;
+
+    @Autowired UserEntryServices userService;
 
     // Get all Journal Entries
     @GetMapping("all")
@@ -36,7 +39,6 @@ public class JournalEntryController {
     // Add a new Journal Entry
     @PostMapping("add")
     public ResponseEntity<HttpStatus> addEntry(@RequestBody JournalEntry entry) {
-        entry.setDate(LocalDateTime.now());
         journalEntryService.saveJournalEntry(entry);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -67,5 +69,18 @@ public class JournalEntryController {
     public ResponseEntity<HttpStatus> deleteEntry(@PathVariable ObjectId id) {
         journalEntryService.deleteEntry(id);
         return new ResponseEntity<>(HttpStatus.GONE);
+    }
+
+    // Get all Journal Entry of User
+    @RequestMapping("/all/{username}")
+    public ResponseEntity<?> getAllJournalEntryOfUser(@PathVariable String username ){
+        UserEntry userEntry = userService.getUserByUsername(username);
+        List <JournalEntry> JEntry = userEntry.getJournalEntry();
+        if(JEntry != null && !JEntry.isEmpty()){
+            return new ResponseEntity<>(JEntry, HttpStatus.OK);
+        }else{
+            Object msg = "Journal entry is not found";
+            return new ResponseEntity<>(msg, HttpStatus.NOT_FOUND);
+        }
     }
 }
